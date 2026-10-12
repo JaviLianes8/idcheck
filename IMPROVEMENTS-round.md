@@ -1,8 +1,9 @@
 # Improvement round
 
 Ranked by value to a user who validates identifiers at a boundary (API input, CSV import,
-log scraping). Everything here is additive: the 0.1.0 functions keep their signatures,
-defaults and results.
+log scraping). Everything here is additive: the 0.1.0 functions keep their signatures and
+defaults, and their results for valid arguments. Invalid `version=` arguments and the
+exception types now fail more precisely; the CHANGELOG "Changed" section lists each one.
 
 ## 1. Precise rejection reasons (highest value)
 

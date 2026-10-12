@@ -14,10 +14,10 @@ pip install idcheck
 from idcheck import is_uuid, is_ulid, parse_ulid, ulid_timestamp
 
 # Strict UUID check: canonical hyphenated form only, any case.
-is_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479")          # True
-is_uuid("{f47ac10b-58cc-4372-a567-0e02b2c3d479}")        # False (braces)
+is_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479")  # True
+is_uuid("{f47ac10b-58cc-4372-a567-0e02b2c3d479}")  # False (braces)
 is_uuid("urn:uuid:f47ac10b-58cc-4372-a567-0e02b2c3d479")  # False (urn prefix)
-is_uuid("f47ac10b58cc4372a5670e02b2c3d479")              # False (bare hex)
+is_uuid("f47ac10b58cc4372a5670e02b2c3d479")  # False (bare hex)
 
 # Lenient mode accepts exactly those three forms, nothing looser.
 is_uuid("{f47ac10b-58cc-4372-a567-0e02b2c3d479}", lenient=True)  # True
@@ -27,7 +27,7 @@ is_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=4)  # True
 is_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=1)  # False
 
 # ULID validation and parsing (Crockford base32, 26 characters).
-is_ulid("01ARZ3NDEKTSV4RRFFQ69G5FAV")   # True
+is_ulid("01ARZ3NDEKTSV4RRFFQ69G5FAV")  # True
 parse_ulid("01ARZ3NDEKTSV4RRFFQ69G5FAV")  # 1777027686520646174104517696511196507
 ulid_timestamp("01ARZ3NDEKTSV4RRFFQ69G5FAV")
 # datetime.datetime(2016, 7, 30, 23, 54, 10, 259000, tzinfo=datetime.timezone.utc)
@@ -38,14 +38,14 @@ ulid_timestamp("01ARZ3NDEKTSV4RRFFQ69G5FAV")
 ```python
 from idcheck import Reason, explain_uuid, parse_uuid, InvalidUUIDError
 
-explain_uuid("f47ac10b58cc4372a5670e02b2c3d479")      # Reason.FORM_NOT_ALLOWED
+explain_uuid("f47ac10b58cc4372a5670e02b2c3d479")  # Reason.FORM_NOT_ALLOWED
 explain_uuid("00000000-0000-0000-0000-000000000000", 4)  # Reason.WRONG_VARIANT
-explain_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479") # None (valid)
+explain_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479")  # None (valid)
 
 try:
     parse_uuid("not-a-uuid")
-except InvalidUUIDError as error:      # a ValueError subclass
-    error.reason                       # Reason.BAD_LENGTH
+except InvalidUUIDError as error:  # a ValueError subclass
+    error.reason  # Reason.BAD_LENGTH
 ```
 
 ### Inspect, timestamps and conversion
@@ -56,13 +56,13 @@ from idcheck import inspect_uuid, uuid_timestamp, uuid_to_ulid, ulid_to_uuid
 info = inspect_uuid("017F22E2-79B0-7CC3-98C4-DC0C0C07398F")  # RFC 9562 A.6
 info.version, info.variant, info.canonical
 # (7, <Variant.RFC9562: 'rfc9562'>, '017f22e2-79b0-7cc3-98c4-dc0c0c07398f')
-info.timestamp_ns                                   # 1645557742000000000
+info.timestamp_ns  # 1645557742000000000
 
 uuid_timestamp("C232AB00-9414-11EC-B3C8-9F6BDECED846")  # RFC 9562 A.1, v1
 # datetime.datetime(2022, 2, 22, 19, 22, 22, tzinfo=datetime.timezone.utc)
 
 uuid_to_ulid("017F22E2-79B0-7CC3-98C4-DC0C0C07398F")  # '01FWHE4YDGFK1SHH6W1G60EECF'
-ulid_to_uuid("01FWHE4YDGFK1SHH6W1G60EECF")            # back, losslessly
+ulid_to_uuid("01FWHE4YDGFK1SHH6W1G60EECF")  # back, losslessly
 ```
 
 ### Command line
@@ -79,8 +79,9 @@ $ idcheck time C232AB00-9414-11EC-B3C8-9F6BDECED846
 2022-02-22T19:22:22+00:00
 ```
 
-Identifiers come from the arguments or one per line on stdin. The exit status is 0
-when every identifier passes and 1 otherwise; errors go to stderr.
+Identifiers come from the arguments or one per line on stdin. `validate` reports every
+result on stdout; the other commands print errors to stderr. The exit status is 0 when
+every identifier passes and 1 otherwise.
 
 The full reference (every function, the reason codes, precision and caveats) is in
 [docs/GUIDE.md](docs/GUIDE.md).

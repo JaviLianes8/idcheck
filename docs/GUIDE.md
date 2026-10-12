@@ -14,8 +14,10 @@ random source, no I/O.
 | hyphens elsewhere, braces around bare hex, surrounding spaces | rejected | rejected |
 
 RFC 9562 Section 4 defines the canonical text and states that hex letters may be any
-case. It mentions the braced form (as output by some implementations) and the URN form
-for information only, which is why they are opt in. `uuid.UUID()` from the standard
+case. The same section shows the URN form (Figure 4, the namespace of RFC 8141) as a
+different representation, and lists the braced form only as an informational example of
+what some implementations output. Neither is the canonical text, which is why both are
+opt in. `uuid.UUID()` from the standard
 library is looser still: it drops every hyphen wherever it appears.
 
 For ULIDs, strict mode accepts the 32 symbols of the Crockford alphabet in any case.
@@ -52,9 +54,13 @@ All errors derive from `IdCheckError`, which is a `ValueError`:
 - `TimestampRangeError`: the decoded instant cannot be a `datetime` (year above 9999).
 - `ULIDOverflowError`: the monotonic increment would overflow 80 bits.
 
-Two errors are not `IdCheckError`: `is_uuid` and friends raise a plain `ValueError` for a
-`version=` argument outside 1 to 8 (a programming error), and `encode_ulid` and
-`ulid_from_parts` raise `TypeError` for a non-integer (booleans included).
+Some errors are not `IdCheckError`, because they signal a programming error rather than
+bad data: `is_uuid` and friends raise a plain `ValueError` for a `version=` argument
+outside 1 to 8 and `TypeError` for a non-integer one, and `encode_ulid` and
+`ulid_from_parts` raise `TypeError` for a non-integer (booleans included in both cases).
+
+Errors pickle cleanly, so they survive `multiprocessing` and `concurrent.futures`.
+`str(reason)` is the stable value (for example `bad_length`) on every Python version.
 
 ## UUID functions
 

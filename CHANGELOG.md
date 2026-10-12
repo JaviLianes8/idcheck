@@ -26,7 +26,8 @@ All notable changes to this project are documented here. The format follows
 ### Changed
 
 - `is_uuid` raises `ValueError` for an out of range `version=` on every input, not only
-  on well formed ones.
+  on well formed ones, and `TypeError` for a non-integer `version=` (such as `True`,
+  which 0.1.0 read as 1).
 - `parse_ulid` and `ulid_timestamp` raise `InvalidULIDError`, a `ValueError` subclass.
   `ulid_timestamp` raises `TimestampRangeError` (also a `ValueError`) past year 9999 and
   converts milliseconds with exact integer arithmetic.
