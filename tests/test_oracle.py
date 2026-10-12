@@ -1,6 +1,7 @@
 """Seeded cross-check against the standard library ``uuid`` module, the oracle."""
 
 import random
+import sys
 import uuid
 
 import pytest
@@ -90,6 +91,19 @@ def test_v1_built_by_stdlib_round_trips_its_timestamp() -> None:
         fields = (ticks & 0xFFFFFFFF, (ticks >> 32) & 0xFFFF, (ticks >> 48) | 0x1000)
         oracle = uuid.UUID(fields=(*fields, 0x80, 0, rng.getrandbits(48)))
         assert uuid_timestamp_ns(str(oracle)) == (ticks - 0x01B21DD213814000) * 100
+
+
+@pytest.mark.skipif(sys.version_info < (3, 14), reason="uuid.UUID.time covers v6 and v7 on 3.14+")
+@pytest.mark.parametrize("version", [6, 7])
+def test_v6_and_v7_timestamps_agree_with_stdlib_time_field(version: int) -> None:
+    rng = random.Random(SEED)
+    for _ in range(ROUNDS):
+        oracle = uuid.UUID(int=_stamped(rng, version))
+        ns = uuid_timestamp_ns(str(oracle))
+        if version == 7:
+            assert ns == oracle.time * 1_000_000
+        else:
+            assert ns == (oracle.time - 0x01B21DD213814000) * 100
 
 
 def test_conversion_round_trips_random_values() -> None:
