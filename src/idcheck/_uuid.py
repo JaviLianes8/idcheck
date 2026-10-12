@@ -45,7 +45,11 @@ class UUIDInfo:
 
 
 def _check_version_argument(version: int | None) -> None:
-    if version is not None and version not in _VERSIONS:
+    if version is None:
+        return
+    if isinstance(version, bool) or not isinstance(version, int):
+        raise TypeError("version must be an int")
+    if version not in _VERSIONS:
         raise ValueError("version must be one of 1 through 8")
 
 
@@ -76,7 +80,8 @@ def is_uuid(value: str, version: int | None = None, *, lenient: bool = False) ->
     ``lenient=True``. With ``version`` given it also checks the version nibble and the
     RFC 9562 variant, so ``is_uuid(s, version=4)`` means a real version 4 UUID.
 
-    Raises :class:`ValueError` if ``version`` is not 1 through 8.
+    Raises :class:`ValueError` if ``version`` is not 1 through 8, and :class:`TypeError`
+    if it is not an int (booleans included).
 
     >>> is_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=4)
     True

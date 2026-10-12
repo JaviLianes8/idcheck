@@ -36,6 +36,9 @@ class Reason(str, Enum):
         """A short human readable sentence for this reason."""
         return _MESSAGES[self]
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class IdCheckError(ValueError):
     """Base class of every error raised by idcheck.
@@ -45,12 +48,12 @@ class IdCheckError(ValueError):
     """
 
     def __init__(self, reason: Reason, value: object, message: str | None = None) -> None:
-        shown = repr(value)
-        if len(shown) > 60:
-            shown = shown[:57] + "..."
-        super().__init__(message or f"{reason.description}: {shown}")
+        super().__init__(message or f"{reason.description}: {_show(value)}")
         self.reason = reason
         self.value = value
+
+    def __reduce__(self) -> tuple[type[IdCheckError], tuple[Reason, object, str]]:
+        return type(self), (self.reason, self.value, str(self))
 
 
 class InvalidUUIDError(IdCheckError):
@@ -82,3 +85,13 @@ _MESSAGES = {
     Reason.TIMESTAMP_OUT_OF_RANGE: "timestamp outside the datetime range",
     Reason.OVERFLOW: "ULID randomness would overflow",
 }
+
+
+def _show(value: object) -> str:
+    # Bound the work: never repr a huge string whole or stringify a huge int.
+    if isinstance(value, str):
+        shown = repr(value[:60])
+        return shown if len(value) <= 60 else shown + "..."
+    if isinstance(value, int) and not isinstance(value, bool) and value.bit_length() > 160:
+        return f"<int of {value.bit_length()} bits>"
+    return repr(value)[:60]

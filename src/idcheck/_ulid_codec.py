@@ -51,7 +51,7 @@ def check_int(value: object, maximum: int, name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError(f"{name} must be an int")
     if not 0 <= value <= maximum:
-        raise InvalidULIDError(Reason.OUT_OF_RANGE, value, f"{name} out of range: {value}")
+        raise InvalidULIDError(Reason.OUT_OF_RANGE, value, f"{name} out of range")
     return value
 
 

@@ -25,6 +25,9 @@ class UUIDForm(str, Enum):
     HEX = "hex"
     """``f47ac10b58cc4372a5670e02b2c3d479``: 32 hex digits, no hyphens."""
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class Variant(str, Enum):
     """The variant field: the top bits of octet 8 (RFC 9562 Section 4.1)."""
@@ -38,13 +41,16 @@ class Variant(str, Enum):
     FUTURE = "future"
     """``111x``: reserved for future definition. The max UUID has this variant."""
 
+    def __str__(self) -> str:
+        return self.value
+
 
 def read_uuid(value: object, lenient: bool) -> tuple[int, UUIDForm] | Reason:
     """Return the integer value and form of ``value``, or the first reason it fails."""
     if not isinstance(value, str):
         return Reason.NOT_A_STRING
     form, body = _unwrap(value)
-    if form is UUIDForm.CANONICAL and len(body) == _HEX_LENGTH:
+    if form is UUIDForm.CANONICAL and len(body) == _HEX_LENGTH and "-" not in body:
         form = UUIDForm.HEX
         problem = None if all(char in _HEX for char in body) else Reason.BAD_CHARACTER
     elif len(body) == _CANONICAL_LENGTH:
