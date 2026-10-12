@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "idcheck"
-version = "0.1.0"
+version = "0.2.0"
 description = "Strict validation and parsing of UUID and ULID identifier strings, zero dependencies and fully typed"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,6 +20,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+idcheck = "idcheck._cli:main"
+
 [project.optional-dependencies]
 dev = ["ruff", "mypy", "pytest", "build", "twine"]
 
@@ -30,6 +33,9 @@ Issues = "https://github.com/JaviLianes8/idcheck/issues"
 Changelog = "https://github.com/JaviLianes8/idcheck/blob/main/CHANGELOG.md"
 LinkedIn = "https://www.linkedin.com/in/jlianes/"
 Funding = "https://buymeacoffee.com/jlianesglrs"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["IMPROVEMENTS-round.md"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/idcheck"]
@@ -46,6 +52,6 @@ python_version = "3.10"
 strict = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "src"]
 pythonpath = ["src"]
-addopts = "-q"
+addopts = "-q --doctest-modules"
