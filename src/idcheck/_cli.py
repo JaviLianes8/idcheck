@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import errno
+import os
 import sys
 from collections.abc import Callable, Iterator, Sequence
 from typing import NoReturn, TextIO
@@ -52,7 +54,12 @@ def _build_parser() -> argparse.ArgumentParser:
     for name, text in helps.items():
         child = sub.add_parser(name, help=text, description=text)
         child.add_argument("ids", nargs="*", metavar="ID", help="identifiers (default: stdin)")
-        child.add_argument("--kind", choices=("auto", "uuid", "ulid"), default="auto")
+        child.add_argument(
+            "--kind",
+            choices=("auto", "uuid", "ulid"),
+            default="auto",
+            help="format to read; auto treats 26 characters as a ULID (default: auto)",
+        )
         child.add_argument(
             "--lenient",
             action="store_true",
@@ -76,8 +83,10 @@ def _identifiers(given: list[str], stdin: TextIO) -> Iterator[str]:
     if given:
         yield from given
         return
+    if stdin.isatty():
+        print("idcheck: reading identifiers from stdin, one per line", file=sys.stderr)
     for line in stdin:
-        text = line.strip()
+        text = line.strip().lstrip("\ufeff").strip()
         if text:
             yield text
 
@@ -93,6 +102,13 @@ def _run_each(ids: Iterator[str], work: Callable[[str], str], out: TextIO, err: 
     return status
 
 
+def _safe(stream: TextIO) -> None:
+    # A console or pipe in a legacy code page must not crash on a non-ASCII identifier.
+    reconfigure = getattr(stream, "reconfigure", None)
+    if reconfigure is not None:
+        reconfigure(errors="backslashreplace")
+
+
 def main(
     argv: Sequence[str] | None = None,
     stdin: TextIO | None = None,
@@ -100,9 +116,27 @@ def main(
     stderr: TextIO | None = None,
 ) -> int:
     """Run the command line tool and return its exit status."""
+    if stdout is None:
+        _safe(sys.stdout)
+    if stderr is None:
+        _safe(sys.stderr)
+    if stdin is None and hasattr(sys.stdin, "reconfigure"):
+        # Identifiers are ASCII; utf-8-sig drops the BOM some editors write on Windows.
+        sys.stdin.reconfigure(encoding="utf-8-sig", errors="replace")
     args = _build_parser().parse_args(argv)
     out, err = stdout or sys.stdout, stderr or sys.stderr
-    ids = _identifiers(args.ids, stdin or sys.stdin)
+    try:
+        return _dispatch(args, _identifiers(args.ids, stdin or sys.stdin), out, err)
+    except OSError as error:
+        # The reader went away (for example ``| head -1``). Windows reports EINVAL.
+        if not isinstance(error, BrokenPipeError) and error.errno != errno.EINVAL:
+            raise
+        if stdout is None:
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 1
+
+
+def _dispatch(args: argparse.Namespace, ids: Iterator[str], out: TextIO, err: TextIO) -> int:
     kind = args.kind
     if args.command == "validate":
         version = args.uuid_version

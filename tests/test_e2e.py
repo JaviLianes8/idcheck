@@ -69,6 +69,22 @@ def test_installed_script_reports_errors_on_stderr(script: Path) -> None:
     assert "no_timestamp" in done.stderr
 
 
+def test_installed_module_entry_point(script: Path) -> None:
+    python = script.parent / ("python.exe" if os.name == "nt" else "python")
+    done = subprocess.run(
+        [str(python), "-m", "idcheck", "convert", V7], capture_output=True, text=True
+    )
+    assert (done.returncode, done.stdout.strip()) == (0, "01FWHE4YDGFK1SHH6W1G60EECF")
+
+
+def test_installed_script_survives_non_ascii_output(script: Path) -> None:
+    done = subprocess.run(
+        [str(script), "validate", chr(0x131) * 26], capture_output=True, cwd=script.parent
+    )
+    assert done.returncode == 1
+    assert done.stdout.startswith(b"invalid\tbad_character\t")
+
+
 def test_installed_script_help_and_version(script: Path) -> None:
     assert "examples:" in _run(script, "--help").stdout
     assert _run(script, "--version").stdout.startswith("idcheck 0.")

@@ -26,6 +26,11 @@ def test_validate_reads_stdin_and_fails_on_any_invalid() -> None:
     assert out.splitlines()[1] == f"invalid\tform_not_allowed\t{{{V4}}}"
 
 
+def test_stdin_byte_order_mark_is_ignored() -> None:
+    status, out, _ = _run("validate", stdin=chr(0xFEFF) + V4 + "\n")
+    assert (status, out) == (0, f"valid\tuuid\t{V4}\n")
+
+
 def test_validate_lenient_and_version() -> None:
     assert _run("validate", "--lenient", "{" + V4 + "}")[0] == 0
     status, out, _ = _run("validate", "--uuid-version", "1", V4, NIL)
