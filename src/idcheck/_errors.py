@@ -49,11 +49,12 @@ class Reason(str, Enum):
 
 
 class IdCheckError(ValueError):
-    """Base class of every error raised by idcheck.
+    """Base class of data errors raised by idcheck.
 
     It is a :class:`ValueError`, so ``except ValueError`` keeps working. ``reason`` says
     what went wrong and ``value`` holds the offending input. Default messages never
-    include that input. A custom ``message`` is used verbatim; callers must redact it.
+    include that input. A nonempty custom ``message`` is used verbatim; callers must
+    redact it. ``None`` and the empty string select the default message.
 
     >>> error = IdCheckError(Reason.BAD_LENGTH, "private input")
     >>> str(error), error.reason.value

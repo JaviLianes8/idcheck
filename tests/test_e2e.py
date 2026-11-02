@@ -37,6 +37,7 @@ def script(tmp_path_factory: pytest.TempPathFactory) -> Path:
     consumer = [str(python), "-I", str(ROOT / "tests/_consumer.py")]
     before = json.loads(subprocess.check_output(consumer, cwd=base, text=True, timeout=30))
     assert before["version"] == "0.2.0"
+    assert all("private-token" in message for message in _diagnostics(python))
     subprocess.run(
         [str(python), "-m", "pip", "install", "--no-index", "--quiet", str(wheel)],
         check=True,
@@ -48,7 +49,27 @@ def script(tmp_path_factory: pytest.TempPathFactory) -> Path:
     assert before["records"] == after["records"]
     assert "private-token" in before["diagnostic"]
     assert after["diagnostic"] == "wrong length"
+    assert all(
+        "private-token" not in message and len(message) < 1000 for message in _diagnostics(python)
+    )
     return bin_dir / ("idcheck.exe" if os.name == "nt" else "idcheck")
+
+
+def _diagnostics(python: Path) -> list[str]:
+    results = []
+    for arguments in [
+        [command, "private-token"] for command in ["validate", "inspect", "convert", "time"]
+    ] + [["validate", "--kind", "private-token"]]:
+        done = subprocess.run(
+            [str(python), "-I", "-m", "idcheck", *arguments],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            cwd=python.parent,
+        )
+        assert done.returncode == 1
+        results.append(done.stdout + done.stderr)
+    return results
 
 
 def _run(script: Path, *args: str, stdin: str = "") -> subprocess.CompletedProcess[str]:

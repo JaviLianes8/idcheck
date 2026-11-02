@@ -60,8 +60,9 @@ outside 1 to 8 and `TypeError` for a non-integer one, and `encode_ulid` and
 `ulid_from_parts` raise `TypeError` for a non-integer (booleans included in both cases).
 
 Default exception messages omit input; `.value` deliberately retains it, so avoid
-logging that attribute when it may be sensitive. Explicit custom `message` arguments
-are caller-owned and used verbatim. Invalid CLI records use `<redacted>` instead of
+logging that attribute when it may be sensitive. Nonempty custom `message` arguments
+are caller-owned and used verbatim; `None` or an empty string selects the default.
+Invalid CLI records use `<redacted>` instead of
 the input, and usage errors print a generic message plus usage to avoid echoing arguments.
 
 Errors pickle cleanly, so they survive `multiprocessing` and `concurrent.futures`.
