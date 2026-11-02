@@ -9,7 +9,7 @@ Progress:
 - [x] Every distinct installed supported interpreter: 12 builds, including free-threaded.
 - [x] Mutation round: 22 of 22 killed; final gates pass.
 - [ ] Independent reviewer (item 16): pending.
-- [ ] Five QA lenses (item 19): pending.
+- [ ] Five QA lenses (item 19): round 1 fixes complete; independent re-review pending.
 - [ ] Merge and publication (item 17): pending.
 
 ## Scorecard
@@ -34,7 +34,37 @@ Progress:
 | 16 | PENDING | Independent review remains to be performed. |
 | 17 | PENDING | Release branch pushed; merge and publication remain to be performed. |
 | 18 | PASS | 22 deliberate mutations killed; the initial rounding survivor gained a contract and was killed on rerun. |
-| 19 | PENDING | No independent QA lens verdicts recorded. |
+| 19 | PENDING | Round 1 findings from lenses a, c and e fixed; independent re-review pending. |
+
+## QA round 1 fixes (2026-11-03)
+
+Fix commit: `ce910756b40c4a7be4bbc41f55f9b634137d8b56` (`fix round one qa findings`).
+Reviewed base: `b82cee144f117a8b02b1fa325f791a7c348d8a88`. All 15 findings addressed;
+none disputed. This records implementation verification, not independent lens approval.
+
+| Findings | Changes and verification |
+| --- | --- |
+| A-01 | GUIDE lists the complete increment signature and lenient Crockford aliases. |
+| A-02 | CONTRIBUTING describes real integration disk/network use and IDCHECK_SCRATCH. |
+| C-01 | ULID readers snapshot builtin text before length/decoding; empty and oversized subclass contracts pass. |
+| C-02 | UUID validation and conversion share builtin text; all seven entry points preserve safe outcomes. |
+| C-03 | Integer subclasses normalize before bounds, hashing and arithmetic, including version and both parts. |
+| E-M06, E-M35 | Datetime extraction and conversion contracts cover all four UUID forms and strict rejection. |
+| E-M20, E-M21, E-M34, E-M36 | All Crockford aliases reach timestamp, increment and conversion APIs with exact outputs. |
+| E-M15, E-M47 | Literal complete enum mappings, string rendering, API and installed CLI tokens are pinned. |
+| E-M45 | Every error class checks None, empty and custom messages, including pickle round trips. |
+| E-M51 | Installed CLI checks exact 20-digit randomness for zero, one and 31. |
+
+Before production edits, all 19 subclass regressions failed on the reviewed base;
+after normalization all passed. The original six subclass probes and both scaling
+probes also passed. At 256,000 characters, subclass rejection took 0.0000143 seconds.
+All ten reported surviving mutations were reapplied individually in a disposable
+copy and killed by the new contracts, including M51 through the installed wheel.
+Evidence logs are under `scratch/idcheck-cert/fix-r1/` outside this repository.
+Final checks on Python 3.14.6: format, lint, strict source/test typing and pytest
+exit 0; 245 tests pass with no skips, 300 s per-test timeout and scratch basetemp.
+Wheel/sdist build, archive inspection, strict metadata validation and 0.2.0 upgrade
+pass. Public names, signatures and defaults are unchanged; fixes are in CHANGELOG.
 
 ## API and upgrade
 
@@ -152,7 +182,7 @@ changes only clarify error docstrings and strengthen installed-upgrade checks.
 | M21 | Rejected CLI input exposed | `tests/test_cli.py::test_validate_reads_stdin_and_fails_on_any_invalid` |
 | M22 | Randomness returns timestamp | `tests/test_ulid_more.py::test_inspect_splits_timestamp_and_randomness` |
 
-## Packaging and final gates
+## Packaging and preparation gates
 
 `ruff format --check .`, `ruff check .`, `mypy --strict src`, `mypy --strict src tests`
 and `pytest` each exit 0. Pytest uses a 300 s per-test limit and an explicit scratch
@@ -164,6 +194,6 @@ Sdist: source, purposeful contract tests and provenance manifest, documentation,
 fetch script, pyproject, README, CHANGELOG and LICENSE. Downloaded documents, caches,
 local environments, improvement notes and this report are excluded.
 
-Final artifact SHA-256:
+Preparation artifact SHA-256:
 - `idcheck-1.0.0-py3-none-any.whl`: `f8408c869d06b4604ac8d06caea646b6299fea39ed14aa5f83c4a605161ef8dd`
 - `idcheck-1.0.0.tar.gz`: `7dd6c9ffb120bec1ef6f73a613e1bb5d2492a0dfeaa0f909cfbc0f5b2b8425eb`
