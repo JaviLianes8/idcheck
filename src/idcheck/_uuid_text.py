@@ -57,6 +57,8 @@ def read_uuid(value: object, lenient: bool) -> tuple[int, UUIDForm] | Reason:
     """Return the integer value and form of ``value``, or the first reason it fails."""
     if not isinstance(value, str):
         return Reason.NOT_A_STRING
+    # Bypass subclass overrides so validation and conversion see the same text.
+    value = str.__str__(value)
     form, body = _unwrap(value)
     if form is UUIDForm.CANONICAL and len(body) == _HEX_LENGTH and "-" not in body:
         form = UUIDForm.HEX

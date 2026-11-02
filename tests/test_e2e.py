@@ -1,5 +1,7 @@
 """Build the wheel, install it into a fresh virtual environment, drive the real script."""
 
+from __future__ import annotations
+
 import json
 import os
 import subprocess
@@ -130,3 +132,33 @@ def test_installed_script_survives_non_ascii_output(script: Path) -> None:
 def test_installed_script_help_and_version(script: Path) -> None:
     assert "examples:" in _run(script, "--help").stdout
     assert _run(script, "--version").stdout.strip() == "idcheck 1.0.0"
+
+
+@pytest.mark.parametrize(
+    "tail,expected",
+    [("0", "00000000000000000000"), ("1", "00000000000000000001"), ("Z", "0000000000000000001f")],
+)
+def test_installed_randomness_hex_padding(script: Path, tail: str, expected: str) -> None:
+    done = _run(script, "inspect", "0" * 25 + tail)
+    assert done.returncode == 0
+    assert json.loads(done.stdout)["randomness_hex"] == expected
+
+
+@pytest.mark.parametrize("form", ["canonical", "braced", "urn", "hex"])
+def test_installed_uuid_form_tokens(script: Path, form: str) -> None:
+    text = {
+        "canonical": V4,
+        "braced": "{" + V4 + "}",
+        "urn": "urn:uuid:" + V4,
+        "hex": V4.replace("-", ""),
+    }[form]
+    done = _run(script, "inspect", "--lenient", text)
+    assert done.returncode == 0
+    assert json.loads(done.stdout)["form"] == form
+    assert json.loads(done.stdout)["variant"] == "rfc9562"
+
+
+def test_installed_bad_layout_token(script: Path) -> None:
+    done = _run(script, "validate", "0000000-00000-0000-0000-000000000000")
+    assert done.returncode == 1
+    assert done.stdout == "invalid\tbad_layout\t<redacted>\n"

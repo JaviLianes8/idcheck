@@ -57,17 +57,19 @@ class UUIDInfo:
         return self.canonical
 
 
-def _check_version_argument(version: int | None) -> None:
+def _check_version_argument(version: int | None) -> int | None:
     if version is None:
-        return
+        return None
     if isinstance(version, bool) or not isinstance(version, int):
         raise TypeError("version must be an int")
+    version = int.__int__(version)
     if version not in _VERSIONS:
         raise ValueError("version must be one of 1 through 8")
+    return version
 
 
 def _read(value: object, version: int | None, lenient: bool) -> tuple[int, UUIDForm] | Reason:
-    _check_version_argument(version)
+    version = _check_version_argument(version)
     result = read_uuid(value, lenient)
     if isinstance(result, Reason) or version is None:
         return result

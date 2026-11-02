@@ -106,8 +106,10 @@ reserved value such as 0 or 15; `is_uuid(..., version=n)` only accepts 1 to 8.
   `randomness`.
 - `encode_ulid(value: int) -> str` writes any integer from 0 to 2**128 - 1.
 - `ulid_from_parts(timestamp_ms, randomness=0) -> str` composes the two fields.
-- `increment_ulid(value) -> str` applies the spec's monotonicity rule: add one to the
+- `increment_ulid(value, *, lenient=False) -> str` applies the spec's monotonicity rule: add one to the
   randomness, keep the timestamp, fail with `ULIDOverflowError` rather than wrap.
+  With `lenient=True`, it accepts the same Crockford aliases as the other ULID readers
+  (`I`/`L` as `1`, `O` as `0`, in either case) and returns canonical uppercase text.
 
 ## Conversion
 

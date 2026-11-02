@@ -27,9 +27,23 @@ All notable changes to this project are documented here. The format follows
 
 - Runnable examples for public classes, source provenance checks, hostile-input
   properties, installed-wheel upgrade tests and release packaging contracts.
+- Contracts for lenient timestamp and conversion options, enum serialization,
+  exception message defaults, padded CLI randomness and overridden builtin subclasses.
 - Local checks stop at the first failed gate. The publishing script checks the
   requested version instead of rejecting the existing project, refuses a dirty
   tree, and builds into a fresh directory without deleting earlier artifacts.
+
+### Fixed
+
+- UUID and ULID readers validate the underlying text of string subclasses using
+  builtin operations. Overridden length, iteration or case methods cannot bypass
+  validation, trigger unbounded ULID decoding, or expose input in conversion errors.
+- Integer subclasses use their underlying value for encoding, both ULID parts and
+  UUID version checks. Overridden comparisons and arithmetic cannot bypass bounds or
+  crash encoding; valid unhashable version integers are accepted. Booleans remain
+  rejected, and typed errors retain the original input in `.value`.
+- The guide documents `increment_ulid`'s lenient option; contribution instructions
+  describe integration-test disk/network requirements and `IDCHECK_SCRATCH`.
 
 ## [0.2.0]
 
