@@ -1,4 +1,10 @@
-"""Golden fixtures copied from RFC 9562 and the ULID specification."""
+"""Short specification examples, verified against live downloads on 2026-11-02 UTC.
+
+UUID: https://www.rfc-editor.org/rfc/rfc9562.txt
+ULID: https://github.com/ulid/spec/tree/d0c7170df4517939e70129b4d6462cc162f2d5bf
+Hashes and retrieval times are in upstream/MANIFEST.json; test_sources verifies them.
+UNIX_NS and ULID_EXAMPLE_MS are derived values, checked with independent implementations.
+"""
 
 from __future__ import annotations
 

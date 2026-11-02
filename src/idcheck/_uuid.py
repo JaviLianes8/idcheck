@@ -15,7 +15,12 @@ _MAX = (1 << 128) - 1
 
 @dataclass(frozen=True, slots=True)
 class UUIDInfo:
-    """Everything idcheck can read from one UUID string. Immutable."""
+    """Immutable UUID fields. Direct construction stores fields without validation.
+
+    >>> info = UUIDInfo(0, "0", UUIDForm.HEX, Variant.NCS, None, None)
+    >>> str(info), info.is_nil, info.is_max
+    ('0', True, False)
+    """
 
     value: int
     """The 128-bit integer value."""
@@ -32,12 +37,20 @@ class UUIDInfo:
 
     @property
     def is_nil(self) -> bool:
-        """True for the nil UUID, all 128 bits zero (RFC 9562 Section 5.9)."""
+        """True for the nil UUID, all 128 bits zero (RFC 9562 Section 5.9).
+
+        >>> inspect_uuid("00000000-0000-0000-0000-000000000000").is_nil
+        True
+        """
         return self.value == 0
 
     @property
     def is_max(self) -> bool:
-        """True for the max UUID, all 128 bits one (RFC 9562 Section 5.10)."""
+        """True for the max UUID, all 128 bits one (RFC 9562 Section 5.10).
+
+        >>> inspect_uuid("ffffffff-ffff-ffff-ffff-ffffffffffff").is_max
+        True
+        """
         return self.value == _MAX
 
     def __str__(self) -> str:

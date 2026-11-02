@@ -31,7 +31,7 @@ exit status: 0 when every identifier passes, 1 otherwise (errors go to stderr).
 class _Parser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
         self.print_usage(sys.stderr)
-        self.exit(1, f"{self.prog}: error: {message}\n")
+        self.exit(1, f"{self.prog}: error: invalid command line arguments (see --help)\n")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -97,7 +97,7 @@ def _run_each(ids: Iterator[str], work: Callable[[str], str], out: TextIO, err: 
         try:
             print(work(text), file=out)
         except IdCheckError as error:
-            print(f"idcheck: {text}: {error.reason.value}: {error.reason.description}", file=err)
+            print(f"idcheck: {error.reason.value}: {error.reason.description}", file=err)
             status = 1
     return status
 

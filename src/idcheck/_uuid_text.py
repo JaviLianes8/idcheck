@@ -14,7 +14,11 @@ _HEX_LENGTH = 32
 
 
 class UUIDForm(str, Enum):
-    """The textual form a UUID was written in."""
+    """The textual form a UUID was written in.
+
+    >>> str(UUIDForm.CANONICAL)
+    'canonical'
+    """
 
     CANONICAL = "canonical"
     """``f47ac10b-58cc-4372-a567-0e02b2c3d479``: RFC 9562 Section 4, the only strict form."""
@@ -30,7 +34,11 @@ class UUIDForm(str, Enum):
 
 
 class Variant(str, Enum):
-    """The variant field: the top bits of octet 8 (RFC 9562 Section 4.1)."""
+    """The variant field: the top bits of octet 8 (RFC 9562 Section 4.1).
+
+    >>> str(Variant.RFC9562)
+    'rfc9562'
+    """
 
     NCS = "ncs"
     """``0xxx``: reserved, NCS backward compatibility. The nil UUID has this variant."""

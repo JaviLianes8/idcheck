@@ -18,9 +18,10 @@ def script(tmp_path_factory: pytest.TempPathFactory) -> Path:
     base = tmp_path_factory.mktemp("e2e")
     dist = base / "dist"
     subprocess.run(
-        [sys.executable, "-m", "build", "--wheel", "--outdir", str(dist), str(ROOT)],
+        [sys.executable, "-m", "build", "--outdir", str(dist), str(ROOT)],
         check=True,
         capture_output=True,
+        timeout=180,
     )
     (wheel,) = dist.glob("idcheck-*.whl")
     env_dir = base / "venv"
@@ -28,16 +29,36 @@ def script(tmp_path_factory: pytest.TempPathFactory) -> Path:
     bin_dir = env_dir / ("Scripts" if os.name == "nt" else "bin")
     python = bin_dir / ("python.exe" if os.name == "nt" else "python")
     subprocess.run(
+        [str(python), "-m", "pip", "install", "--quiet", "idcheck==0.2.0"],
+        check=True,
+        capture_output=True,
+        timeout=120,
+    )
+    consumer = [str(python), "-I", str(ROOT / "tests/_consumer.py")]
+    before = json.loads(subprocess.check_output(consumer, cwd=base, text=True, timeout=30))
+    assert before["version"] == "0.2.0"
+    subprocess.run(
         [str(python), "-m", "pip", "install", "--no-index", "--quiet", str(wheel)],
         check=True,
         capture_output=True,
+        timeout=120,
     )
+    after = json.loads(subprocess.check_output(consumer, cwd=base, text=True, timeout=30))
+    assert after["version"] == "1.0.0"
+    assert before["records"] == after["records"]
+    assert "private-token" in before["diagnostic"]
+    assert after["diagnostic"] == "wrong length"
     return bin_dir / ("idcheck.exe" if os.name == "nt" else "idcheck")
 
 
 def _run(script: Path, *args: str, stdin: str = "") -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [str(script), *args], input=stdin, capture_output=True, text=True, cwd=script.parent
+        [str(script), *args],
+        input=stdin,
+        capture_output=True,
+        text=True,
+        cwd=script.parent,
+        timeout=30,
     )
 
 
@@ -87,4 +108,4 @@ def test_installed_script_survives_non_ascii_output(script: Path) -> None:
 
 def test_installed_script_help_and_version(script: Path) -> None:
     assert "examples:" in _run(script, "--help").stdout
-    assert _run(script, "--version").stdout.startswith("idcheck 0.")
+    assert _run(script, "--version").stdout.strip() == "idcheck 1.0.0"

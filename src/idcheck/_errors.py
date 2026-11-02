@@ -6,7 +6,11 @@ from enum import Enum
 
 
 class Reason(str, Enum):
-    """Why a value was rejected. The string value is stable and safe to show or log."""
+    """Why a value was rejected. The string value is stable and safe to show or log.
+
+    >>> str(Reason.BAD_LENGTH)
+    'bad_length'
+    """
 
     NOT_A_STRING = "not_a_string"
     """The value is not a ``str``."""
@@ -33,7 +37,11 @@ class Reason(str, Enum):
 
     @property
     def description(self) -> str:
-        """A short human readable sentence for this reason."""
+        """A short human readable sentence for this reason.
+
+        >>> Reason.BAD_LENGTH.description
+        'wrong length'
+        """
         return _MESSAGES[self]
 
     def __str__(self) -> str:
@@ -44,11 +52,16 @@ class IdCheckError(ValueError):
     """Base class of every error raised by idcheck.
 
     It is a :class:`ValueError`, so ``except ValueError`` keeps working. ``reason`` says
-    what went wrong and ``value`` holds the offending input.
+    what went wrong and ``value`` holds the offending input. Default messages never
+    include that input. A custom ``message`` is used verbatim; callers must redact it.
+
+    >>> error = IdCheckError(Reason.BAD_LENGTH, "private input")
+    >>> str(error), error.reason.value
+    ('wrong length', 'bad_length')
     """
 
     def __init__(self, reason: Reason, value: object, message: str | None = None) -> None:
-        super().__init__(message or f"{reason.description}: {_show(value)}")
+        super().__init__(message or reason.description)
         self.reason = reason
         self.value = value
 
@@ -57,19 +70,35 @@ class IdCheckError(ValueError):
 
 
 class InvalidUUIDError(IdCheckError):
-    """The input is not an acceptable UUID for the requested operation."""
+    """The input is not an acceptable UUID for the requested operation.
+
+    >>> str(InvalidUUIDError(Reason.BAD_LENGTH, "private input"))
+    'wrong length'
+    """
 
 
 class InvalidULIDError(IdCheckError):
-    """The input is not an acceptable ULID (string, integer or parts)."""
+    """The input is not an acceptable ULID (string, integer or parts).
+
+    >>> InvalidULIDError(Reason.BAD_CHARACTER, "?").reason.value
+    'bad_character'
+    """
 
 
 class TimestampRangeError(IdCheckError):
-    """The decoded instant cannot be expressed as a :class:`datetime.datetime`."""
+    """The decoded instant cannot be expressed as a :class:`datetime.datetime`.
+
+    >>> str(TimestampRangeError(Reason.TIMESTAMP_OUT_OF_RANGE, None))
+    'timestamp outside the datetime range'
+    """
 
 
 class ULIDOverflowError(IdCheckError):
-    """The ULID randomness is already at its maximum, so it cannot be incremented."""
+    """The ULID randomness is already at its maximum, so it cannot be incremented.
+
+    >>> str(ULIDOverflowError(Reason.OVERFLOW, None))
+    'ULID randomness would overflow'
+    """
 
 
 _MESSAGES = {
@@ -85,13 +114,3 @@ _MESSAGES = {
     Reason.TIMESTAMP_OUT_OF_RANGE: "timestamp outside the datetime range",
     Reason.OVERFLOW: "ULID randomness would overflow",
 }
-
-
-def _show(value: object) -> str:
-    # Bound the work: never repr a huge string whole or stringify a huge int.
-    if isinstance(value, str):
-        shown = repr(value[:60])
-        return shown if len(value) <= 60 else shown + "..."
-    if isinstance(value, int) and not isinstance(value, bool) and value.bit_length() > 160:
-        return f"<int of {value.bit_length()} bits>"
-    return repr(value)[:60]

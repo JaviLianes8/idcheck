@@ -6,6 +6,31 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-02
+
+### Stable
+
+- The 27 public names, strict and lenient parsing, typed rejection reasons, frozen
+  inspection records, timestamp precision, lossless conversions and monotonic increment.
+- Python 3.10 through 3.14, shipped typing information, and a dependency-free runtime.
+
+### Changed
+
+- Default exception messages no longer include the rejected input. The `.value`
+  attribute still retains it, and explicitly supplied custom messages remain verbatim.
+  This also avoids calling arbitrary input objects' `repr` during error construction.
+- Invalid `validate` records end with `<redacted>` instead of the input. Errors from
+  `inspect`, `convert` and `time` omit input, and CLI usage errors print a generic
+  diagnostic plus usage. Exit statuses and successful output are unchanged.
+
+### Added
+
+- Runnable examples for public classes, source provenance checks, hostile-input
+  properties, installed-wheel upgrade tests and release packaging contracts.
+- Local checks stop at the first failed gate. The publishing script checks the
+  requested version instead of rejecting the existing project, refuses a dirty
+  tree, and builds into a fresh directory without deleting earlier artifacts.
+
 ## [0.2.0]
 
 ### Added
