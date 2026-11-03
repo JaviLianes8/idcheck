@@ -9,7 +9,7 @@ Progress:
 - [x] Every distinct installed supported interpreter: 12 builds, including free-threaded.
 - [x] Mutation round: 22 of 22 killed; final gates pass.
 - [ ] Independent reviewer (item 16): pending.
-- [ ] Five QA lenses (item 19): round 1 fixes complete; independent re-review pending.
+- [ ] Five QA lenses (item 19): round 2 fixes complete; independent re-review pending.
 - [ ] Merge and publication (item 17): pending.
 
 ## Scorecard
@@ -34,7 +34,7 @@ Progress:
 | 16 | PENDING | Independent review remains to be performed. |
 | 17 | PENDING | Release branch pushed; merge and publication remain to be performed. |
 | 18 | PASS | 22 deliberate mutations killed; the initial rounding survivor gained a contract and was killed on rerun. |
-| 19 | PENDING | Round 1 findings from lenses a, c and e fixed; independent re-review pending. |
+| 19 | PENDING | Round 1 findings and all five round 2 findings fixed; independent re-review pending. |
 
 ## QA round 1 fixes (2026-11-03)
 
@@ -65,6 +65,42 @@ Final checks on Python 3.14.6: format, lint, strict source/test typing and pytes
 exit 0; 245 tests pass with no skips, 300 s per-test timeout and scratch basetemp.
 Wheel/sdist build, archive inspection, strict metadata validation and 0.2.0 upgrade
 pass. Public names, signatures and defaults are unchanged; fixes are in CHANGELOG.
+
+## QA round 2 fixes (2026-11-03)
+
+Fix commit: `7268ef1d567eab2652c089da4f26039f4dd54528` (`fix round two qa findings`).
+Reviewed base: `f2e5e01602c094830da07c11f617ead8bfb46c00`. All five findings addressed;
+none disputed. Independent lens approval remains pending.
+
+| Finding | Changes and verification |
+| --- | --- |
+| C-04 | Both text readers check actual string inheritance before normalization. All 15 consumers reject forged string identity with False, NOT_A_STRING or the documented typed error, in both leniency modes. Errors retain the original value. Genuine string subclasses remain accepted. |
+| E-R2-N03 | UUID contracts cover overridden slicing through all seven readers and explicitly preserve underlying integer one. |
+| E-R2-N07 | ULID contracts cover overridden slicing through all eight readers and explicitly preserve underlying integer one. |
+| E-R2-N11 | Separate contracts preserve integer one despite overridden addition through encoding and each ULID parts argument. |
+| E-R2-N18 | All three version-taking UUID functions accept underlying version four despite overridden addition. |
+
+Before production edits, the new contracts produced 30 failures for C-04 and 39
+passes on the reviewed base. After the two type-guard fixes, all 69 pass. The four
+contract gaps required tests only; the existing normalization already preserves
+underlying values. Each reported mutation was applied alone in a disposable copy:
+
+| Finding | Mutation | Catching contract | Result |
+| --- | --- | --- | --- |
+| E-R2-N03 | UUID `str.__str__(value)` replaced by `value[:]` | `test_uuid_readers_ignore_overridden_slicing`, `test_slicing_cannot_replace_underlying_one_with_zero` | 11 failed; exit 1 |
+| E-R2-N07 | ULID `str.__str__(value)` replaced by `value[:]` | `test_ulid_readers_ignore_overridden_slicing`, `test_slicing_cannot_replace_underlying_one_with_zero` | 13 failed; exit 1 |
+| E-R2-N11 | ULID `int.__int__(value)` replaced by `value + 0` | `test_ulid_integer_inputs_ignore_overridden_addition` | 3 failed; exit 1 |
+| E-R2-N18 | UUID `int.__int__(version)` replaced by `version + 0` | `test_uuid_version_ignores_overridden_addition` | 3 failed; exit 1 |
+
+Evidence and the reproducible mutation harness are under
+`scratch/idcheck-cert/fix-r2/` outside this repository. Final checks on Python
+3.14.6: `ruff format --check .`, `ruff check .`, `mypy --strict src`,
+`mypy --strict src tests` and pytest all exit 0. The full suite passes 314 tests
+with no skips, including archive metadata, source provenance, installed-wheel CLI
+and 0.2.0 upgrade checks. Wheel and sdist build successfully. Pytest uses a 300 s
+per-test timeout and a scratch basetemp; build temporary directories and pip cache
+are also under scratch. Public names, signatures and defaults are unchanged.
+The rejection behavior change and added contracts are recorded in CHANGELOG.
 
 ## API and upgrade
 
