@@ -55,7 +55,7 @@ class Variant(str, Enum):
 
 def read_uuid(value: object, lenient: bool) -> tuple[int, UUIDForm] | Reason:
     """Return the integer value and form of ``value``, or the first reason it fails."""
-    if not isinstance(value, str):
+    if not issubclass(type(value), str):
         return Reason.NOT_A_STRING
     # Bypass subclass overrides so validation and conversion see the same text.
     value = str.__str__(value)

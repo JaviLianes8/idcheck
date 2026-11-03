@@ -17,7 +17,7 @@ _ALIASES = {"I": "1", "L": "1", "O": "0"}
 
 def read_ulid(value: object, lenient: bool) -> int | Reason:
     """Return the 128-bit value of ``value``, or the first reason it is not a ULID."""
-    if not isinstance(value, str):
+    if not issubclass(type(value), str):
         return Reason.NOT_A_STRING
     # Bound decoding by the actual text, never an overridden length or case method.
     value = str.__str__(value)

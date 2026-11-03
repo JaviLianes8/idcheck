@@ -29,12 +29,17 @@ All notable changes to this project are documented here. The format follows
   properties, installed-wheel upgrade tests and release packaging contracts.
 - Contracts for lenient timestamp and conversion options, enum serialization,
   exception message defaults, padded CLI randomness and overridden builtin subclasses.
+- Contracts preserve underlying UUID and ULID text despite overridden slicing, and
+  integer values despite overridden addition in encoding, ULID parts and UUID versions.
 - Local checks stop at the first failed gate. The publishing script checks the
   requested version instead of rejecting the existing project, refuses a dirty
   tree, and builds into a fresh directory without deleting earlier artifacts.
 
 ### Fixed
 
+- UUID and ULID consumers reject objects that only report `__class__` as `str`:
+  predicates return `False`, explanations return `NOT_A_STRING`, and other readers
+  raise their typed identifier error with that reason instead of a plain `TypeError`.
 - UUID and ULID readers validate the underlying text of string subclasses using
   builtin operations. Overridden length, iteration or case methods cannot bypass
   validation, trigger unbounded ULID decoding, or expose input in conversion errors.
