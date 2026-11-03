@@ -104,7 +104,8 @@ The rejection behavior change and added contracts are recorded in CHANGELOG.
 
 ## QA round 3 fixes (2026-11-03)
 
-Fix commit: `add string iteration and concatenation contracts` (commit subject).
+Fix commit: `cdb339769dff72ceb02871f012f4edcef13c39d9`
+(`add string iteration and concatenation contracts`).
 Reviewed base: `2d7eaad21553edfd752043247b067f1ffc03f73a`. All three findings addressed;
 none disputed. Independent lens approval remains pending.
 
