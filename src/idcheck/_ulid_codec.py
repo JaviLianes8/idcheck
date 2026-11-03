@@ -17,8 +17,10 @@ _ALIASES = {"I": "1", "L": "1", "O": "0"}
 
 def read_ulid(value: object, lenient: bool) -> int | Reason:
     """Return the 128-bit value of ``value``, or the first reason it is not a ULID."""
-    if not isinstance(value, str):
+    if not issubclass(type(value), str):
         return Reason.NOT_A_STRING
+    # Bound decoding by the actual text, never an overridden length or case method.
+    value = str.__str__(value)
     if len(value) != LENGTH:
         return Reason.BAD_LENGTH
     if not value.isascii():
@@ -50,9 +52,10 @@ def check_int(value: object, maximum: int, name: str) -> int:
     """Return ``value`` if it is an int in ``0..maximum``, else raise."""
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError(f"{name} must be an int")
-    if not 0 <= value <= maximum:
+    number = int.__int__(value)
+    if not 0 <= number <= maximum:
         raise InvalidULIDError(Reason.OUT_OF_RANGE, value, f"{name} out of range")
-    return value
+    return number
 
 
 def write_ulid(value: int) -> str:

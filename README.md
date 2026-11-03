@@ -1,5 +1,7 @@
 # idcheck
 
+[![Lianes8 Certified](https://lianes8studio.com/certified/lianes8-certified-badge.svg)](https://lianes8studio.com/certified)
+
 Strict validation and parsing of UUID and ULID identifier strings, zero dependencies and fully typed.
 
 ## Install
@@ -70,7 +72,7 @@ ulid_to_uuid("01FWHE4YDGFK1SHH6W1G60EECF")  # back, losslessly
 ```
 $ idcheck validate f47ac10b-58cc-4372-a567-0e02b2c3d479 "{f47ac10b-58cc-4372-a567-0e02b2c3d479}"
 valid	uuid	f47ac10b-58cc-4372-a567-0e02b2c3d479
-invalid	form_not_allowed	{f47ac10b-58cc-4372-a567-0e02b2c3d479}
+invalid	form_not_allowed	<redacted>
 $ idcheck validate --uuid-version 4 < ids.txt
 $ idcheck inspect 01ARZ3NDEKTSV4RRFFQ69G5FAV      # one JSON object per line
 $ idcheck convert 017F22E2-79B0-7CC3-98C4-DC0C0C07398F
@@ -84,7 +86,8 @@ result on stdout; the other commands print errors to stderr. The exit status is 
 every identifier passes and 1 otherwise.
 
 The full reference (every function, the reason codes, precision and caveats) is in
-[docs/GUIDE.md](docs/GUIDE.md).
+[GUIDE](https://github.com/JaviLianes8/idcheck/blob/main/docs/GUIDE.md) and
+[CHANGELOG](https://github.com/JaviLianes8/idcheck/blob/main/CHANGELOG.md).
 
 ## Scope
 
@@ -108,20 +111,28 @@ and the standard library `uuid` module already cover generation. `ulid_from_part
 
 ## Why
 
-The standard library `uuid.UUID()` is a footgun for validation. It silently accepts
-braces, the `urn:uuid:` prefix and bare 32 character hex, and it never checks the
-version, so it cannot answer "is this exactly a canonical version 4 UUID string?".
-`is_uuid` does, in one strict function.
+The standard library `uuid.UUID()` is useful for constructing UUID objects and reading
+their fields. It also accepts braces, bare hex and misplaced hyphens; its `version=`
+argument sets bits rather than validating them. `idcheck` provides strict validation
+and explicit rejection reasons when accepting identifiers at an input boundary.
 
-For ULIDs the healthy packages (`python-ulid`, `ulid-py`) are built around generating
-new values and pull in their own object model. There was no small, typed, zero
-dependency helper that just answers "is this string a valid ULID?" and reads back its
-integer value and timestamp. `idcheck` fills that gap and keeps both formats under one
-roof.
+[python-ulid](https://python-ulid.readthedocs.io/en/latest/) provides generation,
+parsing and conversions through a `ULID` object. Choose it when that object model or
+generation is useful. Choose `idcheck` for pure validation and conversion functions
+covering both UUIDs and ULIDs, with typed errors and no runtime dependencies.
+
+## Development
+
+Run `python scripts/fetch_upstream.py PATH` to download the specifications into a local
+directory outside the repository. Set `IDCHECK_UPSTREAM=PATH` to check the cited vectors
+against those files; those checks skip when the files are absent. The tracked manifest
+records their URLs, revisions, retrieval date and hashes. Run `scripts/check.ps1` with
+`IDCHECK_SCRATCH` set to a disposable directory for test and build temporary files.
+The wheel tests install the published 0.2.0 release before upgrading it to 1.0.0.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](https://github.com/JaviLianes8/idcheck/blob/main/LICENSE).
 
 ## Links
 

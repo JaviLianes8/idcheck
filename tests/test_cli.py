@@ -23,7 +23,7 @@ def test_validate_reports_each_identifier_and_passes() -> None:
 def test_validate_reads_stdin_and_fails_on_any_invalid() -> None:
     status, out, _ = _run("validate", stdin=f"{V4}\n\n  {{{V4}}}  \n")
     assert status == 1
-    assert out.splitlines()[1] == f"invalid\tform_not_allowed\t{{{V4}}}"
+    assert out.splitlines()[1] == "invalid\tform_not_allowed\t<redacted>"
 
 
 def test_stdin_byte_order_mark_is_ignored() -> None:
@@ -35,7 +35,10 @@ def test_validate_lenient_and_version() -> None:
     assert _run("validate", "--lenient", "{" + V4 + "}")[0] == 0
     status, out, _ = _run("validate", "--uuid-version", "1", V4, NIL)
     assert status == 1
-    assert out.splitlines() == [f"invalid\twrong_version\t{V4}", f"invalid\twrong_variant\t{NIL}"]
+    assert out.splitlines() == [
+        "invalid\twrong_version\t<redacted>",
+        "invalid\twrong_variant\t<redacted>",
+    ]
 
 
 def test_version_forces_uuid_kind() -> None:
@@ -96,7 +99,7 @@ def test_usage_errors_exit_one(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as caught:
         main(["validate", "--uuid-version", "9", V4])
     assert caught.value.code == 1
-    assert "invalid choice" in capsys.readouterr().err
+    assert "invalid command line arguments" in capsys.readouterr().err
 
 
 def test_help_has_runnable_examples(capsys: pytest.CaptureFixture[str]) -> None:

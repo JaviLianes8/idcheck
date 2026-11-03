@@ -31,7 +31,7 @@ from ._uuid import (
 )
 from ._uuid_text import UUIDForm, Variant
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "IdCheckError",

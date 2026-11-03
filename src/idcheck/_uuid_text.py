@@ -14,7 +14,11 @@ _HEX_LENGTH = 32
 
 
 class UUIDForm(str, Enum):
-    """The textual form a UUID was written in."""
+    """The textual form a UUID was written in.
+
+    >>> str(UUIDForm.CANONICAL)
+    'canonical'
+    """
 
     CANONICAL = "canonical"
     """``f47ac10b-58cc-4372-a567-0e02b2c3d479``: RFC 9562 Section 4, the only strict form."""
@@ -30,7 +34,11 @@ class UUIDForm(str, Enum):
 
 
 class Variant(str, Enum):
-    """The variant field: the top bits of octet 8 (RFC 9562 Section 4.1)."""
+    """The variant field: the top bits of octet 8 (RFC 9562 Section 4.1).
+
+    >>> str(Variant.RFC9562)
+    'rfc9562'
+    """
 
     NCS = "ncs"
     """``0xxx``: reserved, NCS backward compatibility. The nil UUID has this variant."""
@@ -47,8 +55,10 @@ class Variant(str, Enum):
 
 def read_uuid(value: object, lenient: bool) -> tuple[int, UUIDForm] | Reason:
     """Return the integer value and form of ``value``, or the first reason it fails."""
-    if not isinstance(value, str):
+    if not issubclass(type(value), str):
         return Reason.NOT_A_STRING
+    # Bypass subclass overrides so validation and conversion see the same text.
+    value = str.__str__(value)
     form, body = _unwrap(value)
     if form is UUIDForm.CANONICAL and len(body) == _HEX_LENGTH and "-" not in body:
         form = UUIDForm.HEX

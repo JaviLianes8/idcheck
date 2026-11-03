@@ -14,7 +14,11 @@ _MS_NS = 1_000_000
 
 @dataclass(frozen=True, slots=True)
 class ULIDInfo:
-    """Everything idcheck can read from one ULID string. Immutable."""
+    """Immutable ULID fields. Direct construction stores fields without validation.
+
+    >>> str(ULIDInfo(0, "0" * 26, 0, 0))
+    '00000000000000000000000000'
+    """
 
     value: int
     """The 128-bit integer value."""

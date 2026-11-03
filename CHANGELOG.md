@@ -6,6 +6,52 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-02
+
+### Stable
+
+- The 27 public names, strict and lenient parsing, typed rejection reasons, frozen
+  inspection records, timestamp precision, lossless conversions and monotonic increment.
+- Python 3.10 through 3.14, shipped typing information, and a dependency-free runtime.
+
+### Changed
+
+- Default exception messages no longer include the rejected input. The `.value`
+  attribute still retains it, and explicitly supplied custom messages remain verbatim.
+  This also avoids calling arbitrary input objects' `repr` during error construction.
+- Invalid `validate` records end with `<redacted>` instead of the input. Errors from
+  `inspect`, `convert` and `time` omit input, and CLI usage errors print a generic
+  diagnostic plus usage. Exit statuses and successful output are unchanged.
+
+### Added
+
+- Runnable examples for public classes, source provenance checks, hostile-input
+  properties, installed-wheel upgrade tests and release packaging contracts.
+- Contracts for lenient timestamp and conversion options, enum serialization,
+  exception message defaults, padded CLI randomness and overridden builtin subclasses.
+- Contracts preserve underlying UUID and ULID text despite overridden slicing, and
+  integer values despite overridden addition in encoding, ULID parts and UUID versions.
+- Contracts preserve underlying ULID text despite overridden iteration and UUID/ULID
+  text despite overridden concatenation, across all readers and both parsing modes.
+- Local checks stop at the first failed gate. The publishing script checks the
+  requested version instead of rejecting the existing project, refuses a dirty
+  tree, and builds into a fresh directory without deleting earlier artifacts.
+
+### Fixed
+
+- UUID and ULID consumers reject objects that only report `__class__` as `str`:
+  predicates return `False`, explanations return `NOT_A_STRING`, and other readers
+  raise their typed identifier error with that reason instead of a plain `TypeError`.
+- UUID and ULID readers validate the underlying text of string subclasses using
+  builtin operations. Overridden length, iteration or case methods cannot bypass
+  validation, trigger unbounded ULID decoding, or expose input in conversion errors.
+- Integer subclasses use their underlying value for encoding, both ULID parts and
+  UUID version checks. Overridden comparisons and arithmetic cannot bypass bounds or
+  crash encoding; valid unhashable version integers are accepted. Booleans remain
+  rejected, and typed errors retain the original input in `.value`.
+- The guide documents `increment_ulid`'s lenient option; contribution instructions
+  describe integration-test disk/network requirements and `IDCHECK_SCRATCH`.
+
 ## [0.2.0]
 
 ### Added

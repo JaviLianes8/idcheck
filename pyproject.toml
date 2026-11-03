@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "idcheck"
-version = "0.2.0"
+version = "1.0.0"
 description = "Strict validation and parsing of UUID and ULID identifier strings, zero dependencies and fully typed"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,9 +13,14 @@ license-files = ["LICENSE"]
 authors = [{ name = "Javier Lianes", email = "javier@lianes8studio.com" }]
 keywords = ["uuid", "ulid", "validation", "parsing", "identifier"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Typing :: Typed",
 ]
 dependencies = []
@@ -24,18 +29,18 @@ dependencies = []
 idcheck = "idcheck._cli:main"
 
 [project.optional-dependencies]
-dev = ["ruff", "mypy", "pytest", "build", "twine"]
+dev = ["ruff", "mypy", "pytest", "pytest-timeout", "build", "twine"]
 
 [project.urls]
 Homepage = "https://lianes8studio.com"
-Repository = "https://github.com/JaviLianes8/idcheck"
+Source = "https://github.com/JaviLianes8/idcheck"
 Issues = "https://github.com/JaviLianes8/idcheck/issues"
 Changelog = "https://github.com/JaviLianes8/idcheck/blob/main/CHANGELOG.md"
 LinkedIn = "https://www.linkedin.com/in/jlianes/"
 Funding = "https://buymeacoffee.com/jlianesglrs"
 
 [tool.hatch.build.targets.sdist]
-exclude = ["IMPROVEMENTS-round.md"]
+include = ["/src", "/tests", "/scripts/fetch_upstream.py", "/docs", "/README.md", "/CHANGELOG.md", "/LICENSE", "/pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/idcheck"]
@@ -55,3 +60,4 @@ strict = true
 testpaths = ["tests", "src"]
 pythonpath = ["src"]
 addopts = "-q --doctest-modules"
+timeout = 300

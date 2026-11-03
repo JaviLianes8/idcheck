@@ -46,7 +46,7 @@ Every error carries the same value in `error.reason`. `reason.value` is a stable
 
 ## Errors
 
-All errors derive from `IdCheckError`, which is a `ValueError`:
+Data errors derive from `IdCheckError`, which is a `ValueError`:
 
 - `InvalidUUIDError`: bad UUID input, or `no_timestamp`.
 - `InvalidULIDError`: bad ULID text, or an out of range integer for `encode_ulid` and
@@ -58,6 +58,12 @@ Some errors are not `IdCheckError`, because they signal a programming error rath
 bad data: `is_uuid` and friends raise a plain `ValueError` for a `version=` argument
 outside 1 to 8 and `TypeError` for a non-integer one, and `encode_ulid` and
 `ulid_from_parts` raise `TypeError` for a non-integer (booleans included in both cases).
+
+Default exception messages omit input; `.value` deliberately retains it, so avoid
+logging that attribute when it may be sensitive. Nonempty custom `message` arguments
+are caller-owned and used verbatim; `None` or an empty string selects the default.
+Invalid CLI records use `<redacted>` instead of
+the input, and usage errors print a generic message plus usage to avoid echoing arguments.
 
 Errors pickle cleanly, so they survive `multiprocessing` and `concurrent.futures`.
 `str(reason)` is the stable value (for example `bad_length`) on every Python version.
@@ -100,8 +106,10 @@ reserved value such as 0 or 15; `is_uuid(..., version=n)` only accepts 1 to 8.
   `randomness`.
 - `encode_ulid(value: int) -> str` writes any integer from 0 to 2**128 - 1.
 - `ulid_from_parts(timestamp_ms, randomness=0) -> str` composes the two fields.
-- `increment_ulid(value) -> str` applies the spec's monotonicity rule: add one to the
+- `increment_ulid(value, *, lenient=False) -> str` applies the spec's monotonicity rule: add one to the
   randomness, keep the timestamp, fail with `ULIDOverflowError` rather than wrap.
+  With `lenient=True`, it accepts the same Crockford aliases as the other ULID readers
+  (`I`/`L` as `1`, `O` as `0`, in either case) and returns canonical uppercase text.
 
 ## Conversion
 
@@ -124,11 +132,23 @@ idcheck time     [--kind ...] [--lenient] [--unix-ns] [ID ...]
   and surrounding whitespace is stripped.
 - `--kind auto` (the default) treats a 26 character value as a ULID and anything else
   as a UUID. `--uuid-version` implies `--kind uuid`.
-- `validate` prints `valid<TAB>kind<TAB>id` or `invalid<TAB>reason<TAB>id` on stdout.
+- `validate` prints `valid<TAB>kind<TAB>id` or `invalid<TAB>reason<TAB><redacted>` on stdout.
 - `inspect` prints one JSON object per identifier. `timestamp` is ISO 8601, or `null`
   when absent or past `datetime.max`; ULID randomness is a 20 digit hex string so no
   JSON reader loses precision.
 - `convert` prints the other format; `time` prints ISO 8601 UTC, or integer Unix
   nanoseconds with `--unix-ns`.
 - Exit status 0 when every identifier passes, 1 otherwise, including usage errors.
-  Errors go to stderr as `idcheck: <id>: <reason>: <description>`.
+  Errors go to stderr as `idcheck: <reason>: <description>`.
+
+## Stable 1.0 interface
+
+All 27 names in `idcheck.__all__` are stable, with the same signatures and parsing
+defaults as 0.2.0. `__version__` is package metadata. Inspection dataclasses are frozen
+and hashable; direct construction stores fields without checking consistency. Use the
+inspection functions to obtain validated records. `lenient` is a boolean option;
+as in 0.2.0, runtime callers supplying other values get their truth value.
+
+Upgrading from 0.2.0 preserves parsing, timestamps, conversion and error classes.
+Error text and rejected CLI records now omit input. Code reading rejected identifiers
+from CLI output must retain its own input order instead. See the CHANGELOG.

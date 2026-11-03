@@ -1,0 +1,29 @@
+[
+  {
+    "name": "rfc9562.txt",
+    "url": "https://www.rfc-editor.org/rfc/rfc9562.txt",
+    "revision": "RFC 9562, May 2024",
+    "license": "IETF Trust BCP 78",
+    "retrieved": "2026-11-02T23:13:15.302168+00:00",
+    "size": 114638,
+    "sha256": "041870106b8701d9fa9261dcbc1679a6b7ab18cb179b37b69d7232431eac8042"
+  },
+  {
+    "name": "ulid.md",
+    "url": "https://raw.githubusercontent.com/ulid/spec/d0c7170df4517939e70129b4d6462cc162f2d5bf/README.md",
+    "revision": "d0c7170df4517939e70129b4d6462cc162f2d5bf",
+    "license": "GPL-3.0, repository LICENSE",
+    "retrieved": "2026-11-02T23:13:15.562819+00:00",
+    "size": 9676,
+    "sha256": "1f6799a6c33e2f2561ab26dd98f67af966dc3953b84bb595f629089828a0e822"
+  },
+  {
+    "name": "base32.html",
+    "url": "https://www.crockford.com/base32.html",
+    "revision": "retrieval snapshot",
+    "license": "Copyright Douglas Crockford; not redistributed",
+    "retrieved": "2026-11-02T23:13:16.270392+00:00",
+    "size": 9550,
+    "sha256": "7a3aa04f5dd76fcedcf2fbbc357759ac2ffb5794685e412bf9017f33f6a85060"
+  }
+]

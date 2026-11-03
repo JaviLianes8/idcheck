@@ -32,7 +32,7 @@ def validate(text: str, kind: Kind, lenient: bool, version: int | None) -> tuple
         reason = explain_uuid(text, version, lenient=lenient)
     if reason is None:
         return True, f"valid\t{chosen}\t{text}"
-    return False, f"invalid\t{reason.value}\t{text}"
+    return False, f"invalid\t{reason.value}\t<redacted>"
 
 
 def _iso(nanoseconds: int | None, text: str) -> str | None:
