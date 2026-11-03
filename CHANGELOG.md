@@ -31,6 +31,8 @@ All notable changes to this project are documented here. The format follows
   exception message defaults, padded CLI randomness and overridden builtin subclasses.
 - Contracts preserve underlying UUID and ULID text despite overridden slicing, and
   integer values despite overridden addition in encoding, ULID parts and UUID versions.
+- Contracts preserve underlying ULID text despite overridden iteration and UUID/ULID
+  text despite overridden concatenation, across all readers and both parsing modes.
 - Local checks stop at the first failed gate. The publishing script checks the
   requested version instead of rejecting the existing project, refuses a dirty
   tree, and builds into a fresh directory without deleting earlier artifacts.

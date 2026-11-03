@@ -9,7 +9,7 @@ Progress:
 - [x] Every distinct installed supported interpreter: 12 builds, including free-threaded.
 - [x] Mutation round: 22 of 22 killed; final gates pass.
 - [ ] Independent reviewer (item 16): pending.
-- [ ] Five QA lenses (item 19): round 2 fixes complete; independent re-review pending.
+- [ ] Five QA lenses (item 19): round 3 fixes complete; independent re-review pending.
 - [ ] Merge and publication (item 17): pending.
 
 ## Scorecard
@@ -34,7 +34,7 @@ Progress:
 | 16 | PENDING | Independent review remains to be performed. |
 | 17 | PENDING | Release branch pushed; merge and publication remain to be performed. |
 | 18 | PASS | 22 deliberate mutations killed; the initial rounding survivor gained a contract and was killed on rerun. |
-| 19 | PENDING | Round 1 findings and all five round 2 findings fixed; independent re-review pending. |
+| 19 | PENDING | Round 1, round 2 and all three round 3 findings fixed; independent re-review pending. |
 
 ## QA round 1 fixes (2026-11-03)
 
@@ -101,6 +101,44 @@ and 0.2.0 upgrade checks. Wheel and sdist build successfully. Pytest uses a 300 
 per-test timeout and a scratch basetemp; build temporary directories and pip cache
 are also under scratch. Public names, signatures and defaults are unchanged.
 The rejection behavior change and added contracts are recorded in CHANGELOG.
+
+## QA round 3 fixes (2026-11-03)
+
+Fix commit: `add string iteration and concatenation contracts` (commit subject).
+Reviewed base: `2d7eaad21553edfd752043247b067f1ffc03f73a`. All three findings addressed;
+none disputed. Independent lens approval remains pending.
+
+| Finding | Changes and verification |
+| --- | --- |
+| E-R3-M16 | ULID contracts ignore overridden iteration through all eight readers, including increment, in strict and lenient modes. |
+| E-R3-M19 | UUID contracts ignore overridden concatenation through all seven readers in strict and lenient modes. |
+| E-R3-M20 | ULID contracts ignore overridden concatenation through all eight readers, including increment, in strict and lenient modes. |
+
+The 95 new cases cover valid underlying text, invalid underlying text whose override
+supplies a valid identifier, and exact integer-one witnesses. Valid text preserves
+parsing, inspection, timestamps, conversion and increment results. Invalid text
+retains False, BAD_CHARACTER or the documented typed error, including the original
+input object and fixed diagnostic. All 95 pass on the reviewed implementation:
+these findings are coverage gaps, so production code and public behavior are unchanged.
+The added contracts are recorded in CHANGELOG.
+
+Each reported mutation was applied alone in a disposable source copy and restored
+byte-for-byte afterward. All failures are in `tests/test_text_operations_contract.py`.
+
+| Finding | Mutation | Catching contract | Result |
+| --- | --- | --- | --- |
+| E-R3-M16 | ULID `str.__str__(value)` replaced by `"".join(value)` | `test_ulid_readers_ignore_overridden_text_operations`, `test_text_operations_cannot_replace_underlying_one_with_zero` | 29 failed; exit 1 |
+| E-R3-M19 | UUID `str.__str__(value)` replaced by `value + ""` | `test_uuid_readers_ignore_overridden_concatenation`, `test_text_operations_cannot_replace_underlying_one_with_zero` | 25 failed; exit 1 |
+| E-R3-M20 | ULID `str.__str__(value)` replaced by `value + ""` | `test_ulid_readers_ignore_overridden_text_operations`, `test_text_operations_cannot_replace_underlying_one_with_zero` | 29 failed; exit 1 |
+
+After restoration all 95 cases pass again. Evidence logs and the reproducible
+mutation harness are under `scratch/idcheck-cert/fix-r3/` outside this repository.
+Final checks on Python 3.14.6: `ruff format --check .`, `ruff check .`,
+`mypy --strict src`, `mypy --strict src tests` and pytest all exit 0. The full suite
+passes 409 tests with no skips, including archive metadata, source provenance,
+installed-wheel CLI and the 0.2.0 upgrade. Wheel and sdist build successfully.
+Pytest uses a 300 s per-test timeout; basetemp, build temporary directories and
+pip cache are under scratch. Public names, signatures and defaults are unchanged.
 
 ## API and upgrade
 
