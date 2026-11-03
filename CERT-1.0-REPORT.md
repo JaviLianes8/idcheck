@@ -9,7 +9,7 @@ Progress:
 - [x] Every distinct installed supported interpreter: 12 builds, including free-threaded.
 - [x] Mutation round: 22 of 22 killed; final gates pass.
 - [ ] Independent reviewer (item 16): pending.
-- [ ] Five QA lenses (item 19): round 4 fixes complete; independent re-review pending.
+- [ ] Five QA lenses (item 19): round 5 fixes complete; independent re-review pending.
 - [ ] Merge and publication (item 17): pending.
 
 ## Scorecard
@@ -34,7 +34,7 @@ Progress:
 | 16 | PENDING | Independent review remains to be performed. |
 | 17 | PENDING | Release branch pushed; merge and publication remain to be performed. |
 | 18 | PASS | 22 deliberate mutations killed; the initial rounding survivor gained a contract and was killed on rerun. |
-| 19 | PENDING | All findings through round 4 fixed; independent re-review pending. |
+| 19 | PENDING | All findings through round 5 fixed; independent re-review pending. |
 
 ## QA round 1 fixes (2026-11-03)
 
@@ -189,6 +189,53 @@ passes 566 tests with no skips, including archive metadata, source provenance,
 installed-wheel CLI and the 0.2.0 upgrade. Wheel and sdist build successfully.
 Pytest uses a 300 s per-test timeout; basetemp, build temporary directories and
 pip cache are under scratch.
+
+## QA round 5 fixes (2026-11-03)
+
+Fix commit: `77e428d227e28776ae971252d6cd4e4232e1338d`
+(`add suffix removal and reflected multiplication contracts`).
+Reviewed base: `754037bac708b43208e134a65f52cf3c817d6428`. All four findings addressed;
+none disputed. Independent lens approval remains pending.
+
+| Finding | Changes and verification |
+| --- | --- |
+| E-R5-M01 | UUID contracts ignore overridden suffix removal through all seven readers in strict and lenient modes. |
+| E-R5-M02 | ULID contracts ignore overridden suffix removal through all eight readers in strict and lenient modes. |
+| E-R5-M03 | UUID contracts ignore overridden reflected multiplication through all seven readers in strict and lenient modes. |
+| E-R5-M04 | ULID contracts ignore overridden reflected multiplication through all eight readers in strict and lenient modes. |
+
+The 124 added cases cover valid underlying text, invalid underlying text whose
+override supplies a valid identifier, and exact integer-one witnesses. Valid text
+preserves parsing, inspection, timestamps, conversion and increment results. Invalid
+text retains False, BAD_CHARACTER or the documented typed error, including the original
+input object and fixed diagnostic. All 376 text-operation cases pass on the reviewed
+implementation. These findings concern missing contracts: production code and public
+behavior are unchanged. CHANGELOG records the added coverage.
+
+Each reported mutation was applied alone in a disposable source copy and restored
+byte-for-byte afterward. Each replacement below substitutes for `str.__str__(value)`.
+All failures are in `tests/test_text_operations_contract.py`.
+
+| Finding | Reader | Replacement | Result |
+| --- | --- | --- | --- |
+| E-R5-M01 | UUID | `value.removesuffix("")` | 25 failed, 351 passed; exit 1 |
+| E-R5-M02 | ULID | `value.removesuffix("")` | 29 failed, 347 passed; exit 1 |
+| E-R5-M03 | UUID | `1 * value` | 25 failed, 351 passed; exit 1 |
+| E-R5-M04 | ULID | `1 * value` | 29 failed, 347 passed; exit 1 |
+
+The UUID mutations fail `test_uuid_readers_ignore_overridden_text_operations`;
+the ULID mutations fail `test_ulid_readers_ignore_overridden_text_operations`.
+All four also fail `test_text_operations_cannot_replace_underlying_one_with_zero`.
+After restoration all 376 cases pass again. Evidence logs, structured results and
+the reproducible mutation harness are under `scratch/idcheck-cert/fix-r5/` outside
+this repository.
+
+Final checks on Python 3.14.6: `ruff format --check .`, `ruff check .`,
+`mypy --strict src`, `mypy --strict src tests` and pytest all exit 0. The full suite
+passes 690 tests with no skips, including archive metadata, source provenance,
+installed-wheel CLI and the 0.2.0 upgrade. Wheel and sdist build successfully.
+Pytest uses a 300 s per-test timeout; basetemp, build temporary directories and
+pip cache are under scratch. Public names, signatures and defaults are unchanged.
 
 ## API and upgrade
 
