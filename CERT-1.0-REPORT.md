@@ -9,7 +9,7 @@ Progress:
 - [x] Every distinct installed supported interpreter: 12 builds, including free-threaded.
 - [x] Mutation round: 22 of 22 killed; final gates pass.
 - [ ] Independent reviewer (item 16): pending.
-- [ ] Five QA lenses (item 19): round 3 fixes complete; independent re-review pending.
+- [ ] Five QA lenses (item 19): round 4 fixes complete; independent re-review pending.
 - [ ] Merge and publication (item 17): pending.
 
 ## Scorecard
@@ -34,7 +34,7 @@ Progress:
 | 16 | PENDING | Independent review remains to be performed. |
 | 17 | PENDING | Release branch pushed; merge and publication remain to be performed. |
 | 18 | PASS | 22 deliberate mutations killed; the initial rounding survivor gained a contract and was killed on rerun. |
-| 19 | PENDING | Round 1, round 2 and all three round 3 findings fixed; independent re-review pending. |
+| 19 | PENDING | All findings through round 4 fixed; independent re-review pending. |
 
 ## QA round 1 fixes (2026-11-03)
 
@@ -140,6 +140,55 @@ passes 409 tests with no skips, including archive metadata, source provenance,
 installed-wheel CLI and the 0.2.0 upgrade. Wheel and sdist build successfully.
 Pytest uses a 300 s per-test timeout; basetemp, build temporary directories and
 pip cache are under scratch. Public names, signatures and defaults are unchanged.
+
+## QA round 4 fixes (2026-11-03)
+
+Fix commit: `1362d25edf13c514ef36aade505b52e3b53e441a`
+(`add multiplication and replacement normalization contracts`).
+Reviewed base: `d25b1e7e0a147e505e337269382082fbabdc582b`. All five findings addressed;
+none disputed. Independent lens approval remains pending.
+
+| Finding | Changes and verification |
+| --- | --- |
+| E-R4-M02 | UUID contracts ignore overridden multiplication through all seven readers in strict and lenient modes. |
+| E-R4-M03 | ULID contracts ignore overridden multiplication through all eight readers in strict and lenient modes. |
+| E-R4-M08 | UUID contracts ignore overridden prefix removal through all seven readers in strict and lenient modes. |
+| E-R4-M09 | ULID contracts ignore overridden prefix removal through all eight readers in strict and lenient modes. |
+| E-R4-M10 | ULID contracts ignore overridden replacement through all eight readers in strict and lenient modes. |
+
+The 157 added cases cover valid underlying text, invalid underlying text whose
+override supplies a valid identifier, and exact integer-one witnesses. Valid text
+preserves parsing, inspection, timestamps, conversion and increment results. Invalid
+text retains False, BAD_CHARACTER or the documented typed error, with the original
+input object and fixed diagnostic. The expanded text-operation suite passes all
+252 cases on the reviewed implementation. These are coverage gaps: production code,
+public names, signatures, defaults and behavior are unchanged. CHANGELOG records
+the added contracts.
+
+Each reported mutation was applied alone in a disposable source copy and restored
+byte-for-byte afterward. Each replacement below substitutes for `str.__str__(value)`.
+All failures are in `tests/test_text_operations_contract.py`.
+
+| Finding | Reader | Replacement | Result |
+| --- | --- | --- | --- |
+| E-R4-M02 | UUID | `value * 1` | 25 failed, 227 passed; exit 1 |
+| E-R4-M03 | ULID | `value * 1` | 29 failed, 223 passed; exit 1 |
+| E-R4-M08 | UUID | `value.removeprefix("")` | 25 failed, 227 passed; exit 1 |
+| E-R4-M09 | ULID | `value.removeprefix("")` | 29 failed, 223 passed; exit 1 |
+| E-R4-M10 | ULID | `value.replace("", "")` | 29 failed, 223 passed; exit 1 |
+
+The UUID mutations fail `test_uuid_readers_ignore_overridden_text_operations`;
+the ULID mutations fail `test_ulid_readers_ignore_overridden_text_operations`.
+All five also fail `test_text_operations_cannot_replace_underlying_one_with_zero`.
+After restoration all 252 cases pass again. Evidence logs and the reproducible
+mutation harness are under `scratch/idcheck-cert/fix-r4/` outside this repository.
+
+Final checks on Python 3.14.6: `ruff format --check .`, `ruff check .`,
+`mypy --strict src`, `mypy --strict src tests` and pytest all exit 0. The full suite
+passes 566 tests with no skips, including archive metadata, source provenance,
+installed-wheel CLI and the 0.2.0 upgrade. Wheel and sdist build successfully.
+Pytest uses a 300 s per-test timeout; basetemp, build temporary directories and
+pip cache are under scratch.
 
 ## API and upgrade
 
