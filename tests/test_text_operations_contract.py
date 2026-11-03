@@ -1,8 +1,9 @@
-"""Handwritten contracts for string iteration and concatenation overrides."""
+"""Handwritten contracts for string operation overrides during normalization."""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
+from typing import SupportsIndex
 
 import pytest
 
@@ -27,7 +28,41 @@ class FalseUUIDAddition(str):
         return "00000000-0000-0000-0000-000000000000"
 
 
-@pytest.mark.parametrize("subclass", [FalseULIDIteration, FalseULIDAddition])
+class FalseUUIDMultiplication(str):
+    def __mul__(self, other: SupportsIndex) -> str:
+        return "00000000-0000-0000-0000-000000000000"
+
+
+class FalseULIDMultiplication(str):
+    def __mul__(self, other: SupportsIndex) -> str:
+        return "0" * 26
+
+
+class FalseUUIDRemovePrefix(str):
+    def removeprefix(self, prefix: str, /) -> str:
+        return "00000000-0000-0000-0000-000000000000"
+
+
+class FalseULIDRemovePrefix(str):
+    def removeprefix(self, prefix: str, /) -> str:
+        return "0" * 26
+
+
+class FalseULIDReplace(str):
+    def replace(self, old: str, new: str, /, count: SupportsIndex = -1) -> str:
+        return "0" * 26
+
+
+@pytest.mark.parametrize(
+    "subclass",
+    [
+        FalseULIDIteration,
+        FalseULIDAddition,
+        FalseULIDMultiplication,
+        FalseULIDRemovePrefix,
+        FalseULIDReplace,
+    ],
+)
 @pytest.mark.parametrize("lenient", [False, True])
 @pytest.mark.parametrize("text", [ULID, "!" * 26], ids=["valid", "invalid"])
 @pytest.mark.parametrize(
@@ -61,6 +96,9 @@ def test_ulid_readers_ignore_overridden_text_operations(
         assert str(caught.value) == api.Reason.BAD_CHARACTER.description
 
 
+@pytest.mark.parametrize(
+    "subclass", [FalseUUIDAddition, FalseUUIDMultiplication, FalseUUIDRemovePrefix]
+)
 @pytest.mark.parametrize("lenient", [False, True])
 @pytest.mark.parametrize("text", [UUID, "!" * 36], ids=["valid", "invalid"])
 @pytest.mark.parametrize(
@@ -75,10 +113,10 @@ def test_ulid_readers_ignore_overridden_text_operations(
         api.uuid_to_ulid,
     ],
 )
-def test_uuid_readers_ignore_overridden_concatenation(
-    reader: Callable[..., object], text: str, lenient: bool
+def test_uuid_readers_ignore_overridden_text_operations(
+    reader: Callable[..., object], text: str, lenient: bool, subclass: type[str]
 ) -> None:
-    value = FalseUUIDAddition(text)
+    value = subclass(text)
     if text == UUID:
         assert reader(value, lenient=lenient) == reader(text, lenient=lenient)
     elif reader is api.is_uuid:
@@ -99,8 +137,22 @@ def test_uuid_readers_ignore_overridden_concatenation(
         (api.parse_ulid, FalseULIDIteration("0" * 25 + "1")),
         (api.parse_ulid, FalseULIDAddition("0" * 25 + "1")),
         (api.parse_uuid, FalseUUIDAddition("00000000-0000-0000-0000-000000000001")),
+        (api.parse_uuid, FalseUUIDMultiplication("00000000-0000-0000-0000-000000000001")),
+        (api.parse_ulid, FalseULIDMultiplication("0" * 25 + "1")),
+        (api.parse_uuid, FalseUUIDRemovePrefix("00000000-0000-0000-0000-000000000001")),
+        (api.parse_ulid, FalseULIDRemovePrefix("0" * 25 + "1")),
+        (api.parse_ulid, FalseULIDReplace("0" * 25 + "1")),
     ],
-    ids=["ulid-iteration", "ulid-concatenation", "uuid-concatenation"],
+    ids=[
+        "ulid-iteration",
+        "ulid-concatenation",
+        "uuid-concatenation",
+        "uuid-multiplication",
+        "ulid-multiplication",
+        "uuid-removeprefix",
+        "ulid-removeprefix",
+        "ulid-replace",
+    ],
 )
 def test_text_operations_cannot_replace_underlying_one_with_zero(
     parser: Callable[[str], int], value: str
