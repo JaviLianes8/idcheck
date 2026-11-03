@@ -36,6 +36,9 @@ All notable changes to this project are documented here. The format follows
 - Contracts preserve underlying UUID and ULID text despite overridden multiplication
   and prefix removal, and ULID text despite overridden replacement, across all readers
   and both parsing modes, including typed rejection of invalid underlying text.
+- Contracts preserve underlying UUID and ULID text despite overridden suffix removal
+  and reflected multiplication, across all readers and both parsing modes, including
+  typed rejection of invalid underlying text and exact integer-one parsing witnesses.
 - Local checks stop at the first failed gate. The publishing script checks the
   requested version instead of rejecting the existing project, refuses a dirty
   tree, and builds into a fresh directory without deleting earlier artifacts.

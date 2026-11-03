@@ -53,6 +53,26 @@ class FalseULIDReplace(str):
         return "0" * 26
 
 
+class FalseUUIDRemoveSuffix(str):
+    def removesuffix(self, suffix: str, /) -> str:
+        return "00000000-0000-0000-0000-000000000000"
+
+
+class FalseULIDRemoveSuffix(str):
+    def removesuffix(self, suffix: str, /) -> str:
+        return "0" * 26
+
+
+class FalseUUIDReflectedMultiplication(str):
+    def __rmul__(self, other: SupportsIndex) -> str:
+        return "00000000-0000-0000-0000-000000000000"
+
+
+class FalseULIDReflectedMultiplication(str):
+    def __rmul__(self, other: SupportsIndex) -> str:
+        return "0" * 26
+
+
 @pytest.mark.parametrize(
     "subclass",
     [
@@ -61,6 +81,8 @@ class FalseULIDReplace(str):
         FalseULIDMultiplication,
         FalseULIDRemovePrefix,
         FalseULIDReplace,
+        FalseULIDRemoveSuffix,
+        FalseULIDReflectedMultiplication,
     ],
 )
 @pytest.mark.parametrize("lenient", [False, True])
@@ -97,7 +119,14 @@ def test_ulid_readers_ignore_overridden_text_operations(
 
 
 @pytest.mark.parametrize(
-    "subclass", [FalseUUIDAddition, FalseUUIDMultiplication, FalseUUIDRemovePrefix]
+    "subclass",
+    [
+        FalseUUIDAddition,
+        FalseUUIDMultiplication,
+        FalseUUIDRemovePrefix,
+        FalseUUIDRemoveSuffix,
+        FalseUUIDReflectedMultiplication,
+    ],
 )
 @pytest.mark.parametrize("lenient", [False, True])
 @pytest.mark.parametrize("text", [UUID, "!" * 36], ids=["valid", "invalid"])
@@ -142,6 +171,10 @@ def test_uuid_readers_ignore_overridden_text_operations(
         (api.parse_uuid, FalseUUIDRemovePrefix("00000000-0000-0000-0000-000000000001")),
         (api.parse_ulid, FalseULIDRemovePrefix("0" * 25 + "1")),
         (api.parse_ulid, FalseULIDReplace("0" * 25 + "1")),
+        (api.parse_uuid, FalseUUIDRemoveSuffix("00000000-0000-0000-0000-000000000001")),
+        (api.parse_ulid, FalseULIDRemoveSuffix("0" * 25 + "1")),
+        (api.parse_uuid, FalseUUIDReflectedMultiplication("00000000-0000-0000-0000-000000000001")),
+        (api.parse_ulid, FalseULIDReflectedMultiplication("0" * 25 + "1")),
     ],
     ids=[
         "ulid-iteration",
@@ -152,6 +185,10 @@ def test_uuid_readers_ignore_overridden_text_operations(
         "uuid-removeprefix",
         "ulid-removeprefix",
         "ulid-replace",
+        "uuid-removesuffix",
+        "ulid-removesuffix",
+        "uuid-reflected-multiplication",
+        "ulid-reflected-multiplication",
     ],
 )
 def test_text_operations_cannot_replace_underlying_one_with_zero(
